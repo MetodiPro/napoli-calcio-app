@@ -10,9 +10,18 @@ const APP_CONFIG = {
 
 // API Configuration
 const API_CONFIG = {
-    // Usa le nostre API serverless per evitare CORS
-    news: '/api/news',
-    football: '/api/football'
+    // Usa proxy CORS per evitare problemi
+    corsProxy: 'https://api.allorigins.win/raw?url=',
+    footballData: {
+        baseUrl: 'https://api.football-data.org/v4',
+        headers: {
+            'X-Auth-Token': 'ecefe79f13b44346a96ab4fbec3398c8'
+        }
+    },
+    newsAPI: {
+        baseUrl: 'https://newsapi.org/v2',
+        apiKey: 'bb766d38f8d447d79aa8ac29ff8d9ffa'
+    }
 };
 
 // DOM Elements
@@ -98,10 +107,13 @@ function showError(message) {
 
 // API Functions for Real Data
 
-// Fetch news about Napoli from our API
+// Fetch news about Napoli using CORS proxy
 async function fetchNapoliNews() {
     try {
-        const response = await fetch(`${API_CONFIG.news}?q=Napoli calcio`);
+        const newsUrl = `${API_CONFIG.newsAPI.baseUrl}/everything?q=${encodeURIComponent('Napoli calcio')}&language=it&sortBy=publishedAt&pageSize=20&apiKey=${API_CONFIG.newsAPI.apiKey}`;
+        const proxiedUrl = `${API_CONFIG.corsProxy}${encodeURIComponent(newsUrl)}`;
+        
+        const response = await fetch(proxiedUrl);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -133,10 +145,17 @@ async function fetchNapoliNews() {
     }
 }
 
-// Fetch Napoli matches from our API
+// Fetch Napoli matches using CORS proxy
 async function fetchNapoliMatches() {
     try {
-        const response = await fetch(`${API_CONFIG.football}?endpoint=teams/${APP_CONFIG.teamId}/matches`);
+        const footballUrl = `${API_CONFIG.footballData.baseUrl}/teams/${APP_CONFIG.teamId}/matches`;
+        const proxiedUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(footballUrl)}`;
+        
+        const response = await fetch(proxiedUrl, {
+            headers: {
+                'X-Auth-Token': API_CONFIG.footballData.headers['X-Auth-Token']
+            }
+        });
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -165,10 +184,17 @@ async function fetchNapoliMatches() {
     }
 }
 
-// Fetch Napoli squad from our API
+// Fetch Napoli squad using CORS proxy
 async function fetchNapoliSquad() {
     try {
-        const response = await fetch(`${API_CONFIG.football}?endpoint=teams/${APP_CONFIG.teamId}`);
+        const footballUrl = `${API_CONFIG.footballData.baseUrl}/teams/${APP_CONFIG.teamId}`;
+        const proxiedUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(footballUrl)}`;
+        
+        const response = await fetch(proxiedUrl, {
+            headers: {
+                'X-Auth-Token': API_CONFIG.footballData.headers['X-Auth-Token']
+            }
+        });
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -194,10 +220,17 @@ async function fetchNapoliSquad() {
     }
 }
 
-// Fetch Serie A standings from our API
+// Fetch Serie A standings using CORS proxy
 async function fetchSerieAStandings() {
     try {
-        const response = await fetch(`${API_CONFIG.football}?endpoint=competitions/2019/standings`);
+        const footballUrl = `${API_CONFIG.footballData.baseUrl}/competitions/2019/standings`;
+        const proxiedUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(footballUrl)}`;
+        
+        const response = await fetch(proxiedUrl, {
+            headers: {
+                'X-Auth-Token': API_CONFIG.footballData.headers['X-Auth-Token']
+            }
+        });
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
