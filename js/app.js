@@ -10,26 +10,9 @@ const APP_CONFIG = {
 
 // API Configuration
 const API_CONFIG = {
-    // Football Data API (free tier)
-    footballData: {
-        baseUrl: 'https://api.football-data.org/v4',
-        headers: {
-            'X-Auth-Token': 'ecefe79f13b44346a96ab4fbec3398c8' // Users will need to get their own free API key
-        }
-    },
-    // Alternative: API-Football (RapidAPI)
-    rapidAPI: {
-        baseUrl: 'https://api-football-v1.p.rapidapi.com/v3',
-        headers: {
-            'X-RapidAPI-Key': 'YOUR_RAPIDAPI_KEY_HERE',
-            'X-RapidAPI-Host': 'api-football-v1.p.rapidapi.com'
-        }
-    },
-    // News API for football news
-    newsAPI: {
-        baseUrl: 'https://newsapi.org/v2',
-        apiKey: 'bb766d38f8d447d79aa8ac29ff8d9ffa'
-    }
+    // Usa le nostre API serverless per evitare CORS
+    news: '/api/news',
+    football: '/api/football'
 };
 
 // DOM Elements
@@ -115,30 +98,23 @@ function showError(message) {
 
 // API Functions for Real Data
 
-// Fetch news about Napoli from NewsAPI
+// Fetch news about Napoli from our API
 async function fetchNapoliNews() {
     try {
-        const queries = [
-            'Napoli calcio',
-            'SSC Napoli',
-            'Napoli Serie A',
-            'Napoli football'
-        ];
+        const response = await fetch(`${API_CONFIG.news}?q=Napoli calcio`);
         
-        const allNews = [];
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         
-        for (const query of queries) {
-            const url = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&language=it&sortBy=publishedAt&pageSize=10&apiKey=${API_CONFIG.newsAPI.apiKey}`;
-            
-            const response = await fetch(url);
-            if (response.ok) {
-                const data = await response.json();
-                allNews.push(...data.articles);
-            }
+        const data = await response.json();
+        
+        if (!data.articles) {
+            throw new Error('Nessun articolo trovato');
         }
         
         // Remove duplicates and sort by date
-        const uniqueNews = allNews.filter((article, index, self) => 
+        const uniqueNews = data.articles.filter((article, index, self) => 
             index === self.findIndex(a => a.title === article.title)
         ).sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
         
@@ -157,21 +133,20 @@ async function fetchNapoliNews() {
     }
 }
 
-// Fetch Napoli matches from Football Data API
+// Fetch Napoli matches from our API
 async function fetchNapoliMatches() {
     try {
-        // Get current season matches for Napoli
-        const url = `${API_CONFIG.footballData.baseUrl}/teams/${APP_CONFIG.teamId}/matches?status=SCHEDULED,LIVE,FINISHED`;
-        
-        const response = await fetch(url, {
-            headers: API_CONFIG.footballData.headers
-        });
+        const response = await fetch(`${API_CONFIG.football}?endpoint=teams/${APP_CONFIG.teamId}/matches`);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
+        
+        if (!data.matches) {
+            throw new Error('Nessuna partita trovata');
+        }
         
         return data.matches.map(match => ({
             id: match.id,
@@ -186,24 +161,24 @@ async function fetchNapoliMatches() {
         })).sort((a, b) => new Date(a.date) - new Date(b.date));
     } catch (error) {
         console.error('Errore nel caricamento delle partite:', error);
-        throw new Error('Impossibile caricare le partite. Verifica la tua API key.');
+        throw new Error('Impossibile caricare le partite.');
     }
 }
 
-// Fetch Napoli squad from Football Data API
+// Fetch Napoli squad from our API
 async function fetchNapoliSquad() {
     try {
-        const url = `${API_CONFIG.footballData.baseUrl}/teams/${APP_CONFIG.teamId}`;
-        
-        const response = await fetch(url, {
-            headers: API_CONFIG.footballData.headers
-        });
+        const response = await fetch(`${API_CONFIG.football}?endpoint=teams/${APP_CONFIG.teamId}`);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
+        
+        if (!data.squad) {
+            throw new Error('Rosa non trovata');
+        }
         
         return data.squad.map(player => ({
             id: player.id,
@@ -215,25 +190,24 @@ async function fetchNapoliSquad() {
         })).sort((a, b) => (a.number || 999) - (b.number || 999));
     } catch (error) {
         console.error('Errore nel caricamento della rosa:', error);
-        throw new Error('Impossibile caricare la rosa. Verifica la tua API key.');
+        throw new Error('Impossibile caricare la rosa.');
     }
 }
 
-// Fetch Serie A standings
+// Fetch Serie A standings from our API
 async function fetchSerieAStandings() {
     try {
-        // Serie A competition ID: 2019
-        const url = `${API_CONFIG.footballData.baseUrl}/competitions/2019/standings`;
-        
-        const response = await fetch(url, {
-            headers: API_CONFIG.footballData.headers
-        });
+        const response = await fetch(`${API_CONFIG.football}?endpoint=competitions/2019/standings`);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
+        
+        if (!data.standings || !data.standings[0]) {
+            throw new Error('Classifica non trovata');
+        }
         
         return data.standings[0].table.map(team => ({
             position: team.position,
@@ -249,7 +223,7 @@ async function fetchSerieAStandings() {
         }));
     } catch (error) {
         console.error('Errore nel caricamento della classifica:', error);
-        throw new Error('Impossibile caricare la classifica. Verifica la tua API key.');
+        throw new Error('Impossibile caricare la classifica.');
     }
 }
 
@@ -282,18 +256,13 @@ async function loadData() {
     try {
         const promises = [];
         
-        // Check if we have API keys configured
-        if (API_CONFIG.newsAPI.apiKey !== 'YOUR_NEWS_API_KEY_HERE') {
-            promises.push(fetchNapoliNews().then(news => ({ type: 'news', data: news })));
-        }
-        
-        if (API_CONFIG.footballData.headers['X-Auth-Token'] !== 'YOUR_API_KEY_HERE') {
-            promises.push(
-                fetchNapoliMatches().then(matches => ({ type: 'matches', data: matches })),
-                fetchNapoliSquad().then(squad => ({ type: 'squad', data: squad })),
-                fetchSerieAStandings().then(standings => ({ type: 'standings', data: standings }))
-            );
-        }
+        // Carica tutti i dati usando le nostre API
+        promises.push(
+            fetchNapoliNews().then(news => ({ type: 'news', data: news })),
+            fetchNapoliMatches().then(matches => ({ type: 'matches', data: matches })),
+            fetchNapoliSquad().then(squad => ({ type: 'squad', data: squad })),
+            fetchSerieAStandings().then(standings => ({ type: 'standings', data: standings }))
+        );
         
         if (promises.length === 0) {
             throw new Error('Nessuna API key configurata. Leggi le istruzioni per configurare le API.');

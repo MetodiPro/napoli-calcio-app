@@ -1,0 +1,20 @@
+{
+  "functions": {
+    "api/news.js": {
+      "runtime": "@vercel/node"
+    },
+    "api/football.js": {
+      "runtime": "@vercel/node"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/news",
+      "destination": "/api/news.js"
+    },
+    {
+      "source": "/api/football/:path*",
+      "destination": "/api/football.js"
+    }
+  ]
+}
