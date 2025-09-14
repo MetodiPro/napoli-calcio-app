@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Locale - Napoli App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f0f8ff;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 { color: #004B9F; }
+        .method {
+            background: #e3f2fd;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid #004B9F;
+        }
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .easy { background-color: #e8f5e8; border-left-color: #4CAF50; }
+        .medium { background-color: #fff3e0; border-left-color: #FF9800; }
+        .step {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .download-btn {
+            display: inline-block;
+            background: #004B9F;
+            color: white;
+            padding: 12px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Come Avviare l'App Napoli</h1>
+        
+        <p>Per utilizzare le API, devi avviare l'app tramite un server locale invece di aprire direttamente index.html</p>
+        
+        <div class="method easy">
+            <h3>📱 Metodo 1: Più Semplice - Live Server (VS Code)</h3>
+            <div class="step">1. Scarica <strong>Visual Studio Code</strong> (gratuito)</div>
+            <div class="step">2. Installa l'estensione <strong>"Live Server"</strong></div>
+            <div class="step">3. Apri la cartella napoli-calcio-app in VS Code</div>
+            <div class="step">4. Click destro su index.html → "Open with Live Server"</div>
+            <div class="step">5. L'app si apre automaticamente nel browser!</div>
+        </div>
+        
+        <div class="method easy">
+            <h3>🌐 Metodo 2: Python Server</h3>
+            <div class="step">1. Apri il Terminale/Prompt nella cartella dell'app</div>
+            <div class="step">2. Esegui: <code>python -m http.server 8000</code></div>
+            <div class="step">3. Vai su: <a href="http://localhost:8000">http://localhost:8000</a></div>
+        </div>
+        
+        <div class="method medium">
+            <h3>⚡ Metodo 3: Pubblica Online (Immediate)</h3>
+            <div class="step">1. Vai su <a href="https://netlify.com" target="_blank">netlify.com</a></div>
+            <div class="step">2. Trascina la cartella napoli-calcio-app sulla pagina</div>
+            <div class="step">3. Ottieni URL pubblico subito!</div>
+            <div class="step">4. L'app funziona perfettamente online</div>
+        </div>
+        
+        <div style="background: #fff3cd; padding: 15px; border-radius: 8px; border: 1px solid #ffeaa7; margin: 20px 0;">
+            <strong>⚠️ Perché non funziona direttamente?</strong><br>
+            I browser bloccano le chiamate API quando apri file locali per sicurezza (CORS). 
+            Con un server locale o online funziona tutto perfettamente!
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="https://code.visualstudio.com/" target="_blank" class="download-btn">📥 Scarica VS Code</a>
+            <a href="https://netlify.com/" target="_blank" class="download-btn">🚀 Vai su Netlify</a>
+        </div>
+        
+        <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-top: 20px; text-align: center;">
+            <strong>💙 Una volta avviato il server, l'app caricherà i dati reali del Napoli!</strong>
+        </div>
+    </div>
+</body>
+</html>

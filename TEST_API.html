@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API - Napoli App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f0f8ff;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .success { border-left: 4px solid #4CAF50; background: #e8f5e8; }
+        .error { border-left: 4px solid #f44336; background: #ffebee; }
+        .warning { border-left: 4px solid #ff9800; background: #fff3e0; }
+        .loading { border-left: 4px solid #2196F3; background: #e3f2fd; }
+        h1 { color: #004B9F; text-align: center; }
+        .api-key { font-family: monospace; background: #f5f5f5; padding: 5px; }
+        button {
+            background: #004B9F;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #003875; }
+        .result { margin-top: 15px; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Test API Keys - Napoli Calcio</h1>
+    
+    <div class="test-container">
+        <h3>📝 API Keys Configurate</h3>
+        <p><strong>News API:</strong> <span class="api-key" id="newsApiKey">Caricamento...</span></p>
+        <p><strong>Football Data API:</strong> <span class="api-key" id="footballApiKey">Caricamento...</span></p>
+    </div>
+    
+    <div class="test-container">
+        <h3>🧪 Test API</h3>
+        <button onclick="testNewsAPI()">Test News API</button>
+        <button onclick="testFootballAPI()">Test Football API</button>
+        <button onclick="testAll()">Test Tutto</button>
+        <div id="testResults"></div>
+    </div>
+    
+    <div class="test-container">
+        <h3>⚠️ Problemi Comuni</h3>
+        <div class="warning">
+            <strong>CORS Error:</strong> Devi usare un server locale o pubblicare online<br>
+            <strong>401/403 Error:</strong> API key non valida<br>
+            <strong>429 Error:</strong> Troppi requests, aspetta un minuto<br>
+            <strong>Network Error:</strong> Controlla connessione internet
+        </div>
+    </div>
+
+    <script>
+        // API Configuration (stessa del file principale)
+        const API_CONFIG = {
+            footballData: {
+                baseUrl: 'https://api.football-data.org/v4',
+                headers: {
+                    'X-Auth-Token': 'ecefe79f13b44346a96ab4fbec3398c8'
+                }
+            },
+            newsAPI: {
+                baseUrl: 'https://newsapi.org/v2',
+                apiKey: 'bb766d38f8d447d79aa8ac29ff8d9ffa'
+            }
+        };
+
+        // Mostra le API keys
+        document.getElementById('newsApiKey').textContent = API_CONFIG.newsAPI.apiKey;
+        document.getElementById('footballApiKey').textContent = API_CONFIG.footballData.headers['X-Auth-Token'];
+
+        function addResult(title, status, message, data = null) {
+            const resultsDiv = document.getElementById('testResults');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `result ${status}`;
+            
+            let content = `<strong>${title}:</strong> ${message}`;
+            if (data) {
+                content += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            }
+            
+            resultDiv.innerHTML = content;
+            resultsDiv.appendChild(resultDiv);
+        }
+
+        async function testNewsAPI() {
+            addResult('News API', 'loading', 'Testing...');
+            
+            try {
+                const url = `${API_CONFIG.newsAPI.baseUrl}/everything?q=Napoli calcio&language=it&pageSize=3&apiKey=${API_CONFIG.newsAPI.apiKey}`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (response.ok && data.articles) {
+                    addResult('News API', 'success', `✅ Successo! Trovati ${data.articles.length} articoli`, {
+                        totalResults: data.totalResults,
+                        firstArticle: data.articles[0]?.title,
+                        status: response.status
+                    });
+                } else {
+                    addResult('News API', 'error', `❌ Errore: ${data.message || 'Risposta non valida'}`, data);
+                }
+            } catch (error) {
+                addResult('News API', 'error', `❌ Errore di rete: ${error.message}`, { error: error.toString() });
+            }
+        }
+
+        async function testFootballAPI() {
+            addResult('Football API', 'loading', 'Testing...');
+            
+            try {
+                const url = `${API_CONFIG.footballData.baseUrl}/teams/113`;
+                
+                const response = await fetch(url, {
+                    headers: API_CONFIG.footballData.headers
+                });
+                const data = await response.json();
+                
+                if (response.ok && data.name) {
+                    addResult('Football API', 'success', `✅ Successo! Team: ${data.name}`, {
+                        team: data.name,
+                        squad: data.squad?.length + ' giocatori',
+                        status: response.status
+                    });
+                } else {
+                    addResult('Football API', 'error', `❌ Errore: ${data.message || 'Risposta non valida'}`, data);
+                }
+            } catch (error) {
+                addResult('Football API', 'error', `❌ Errore di rete: ${error.message}`, { error: error.toString() });
+            }
+        }
+
+        async function testAll() {
+            document.getElementById('testResults').innerHTML = '';
+            await testNewsAPI();
+            await testFootballAPI();
+        }
+
+        // Test automatico all'avvio
+        window.addEventListener('load', () => {
+            setTimeout(testAll, 1000);
+        });
+    </script>
+</body>
+</html>
